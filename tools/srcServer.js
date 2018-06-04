@@ -2,11 +2,12 @@ import express from 'express';
 import path from 'path';
 import webpack from 'webpack';
 import open from 'open';
-import config from '../webpack.config.dev';
+import config from '../webpack.config.prod';
 
 /*eslint-disable no-console*/
 
 const port = 3000;
+const host = 'http://localhost';
 const app = express();
 const compiler = webpack(config);
 
@@ -26,6 +27,6 @@ app.listen(port, function(err){
     console.log(err);
   }
   else{
-    open(`http://localhost:${port}`, 'chrome');
+    open(`${host}:${port}`, 'chrome');
   }
 });
