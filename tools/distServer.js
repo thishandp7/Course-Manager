@@ -20,6 +20,7 @@ app.listen(port, function(err){
     console.log(err);
   }
   else{
+    console.info(`Runing at http://localhost:${port}`);
     open(`http://localhost:${port}`, 'chrome');
   }
 });

@@ -14,9 +14,6 @@ class MainRoutes extends React.Component{
         <Route exact path="/course" component={ManageCoursePage}/>
         <Route path="/course/:id" component={ManageCoursePage}/>
         <Route path="/about" component={AboutPage}/>
-        <Route render={function (){
-          return <p>Not Found</p>;
-        }}/>
       </Switch>
     );
   }
