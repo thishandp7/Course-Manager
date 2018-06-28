@@ -1,0 +1,15 @@
+version: "3.5"
+
+services:
+  app:
+    build:
+      context: ../../
+      dockerfile: docker/build/Dockerfile
+    volumes:
+      - packages:/usr/src/app/node_modules
+    ports:
+      - 3000:3000
+
+volumes:
+  packages:
+    external: true
