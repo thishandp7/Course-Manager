@@ -1,14 +1,12 @@
 version: "3.5"
 
 services:
-  test:
+  tests:
     build:
       context: ../../
       dockerfile: docker/test/Dockerfile
     volumes:
       - packages:/usr/src/app/node_modules
-    ports:
-      - 3000:3000
 
   builder:
     build:
@@ -16,8 +14,6 @@ services:
       dockerfile: docker/test/Dockerfile.builder
     volumes:
       - packages:/usr/src/app/node_modules
-    ports:
-      - 3000:3000
 
 volumes:
   packages:

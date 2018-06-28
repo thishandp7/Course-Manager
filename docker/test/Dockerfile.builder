@@ -11,6 +11,5 @@ RUN mkdir /usr/src/app/node_modules
 COPY . /usr/src/app
 
 ENV NODE_ENV production
-ENV PORT 3000
 
-CMD ["npm", "run", "build"]
+CMD ["npm", "run", "build", "--noinput"]
