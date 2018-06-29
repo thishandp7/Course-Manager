@@ -2,3 +2,4 @@
 package-lock.json
 /dist
 /target
+.babelrc_old

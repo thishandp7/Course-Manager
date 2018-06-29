@@ -4,12 +4,9 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get -y install autoconf automake libtool nasm make pkg-config git apt-utils
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+RUN mkdir -p /app
+WORKDIR /app
 
-RUN mkdir /usr/src/app/node_modules
-COPY . /usr/src/app
+COPY . /app
 
-ENV NODE_ENV production
-
-CMD ["npm", "run", "build", "--noinput"]
+CMD ["npm", "run", "builder", "--noinput"]

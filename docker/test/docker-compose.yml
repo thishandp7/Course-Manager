@@ -6,15 +6,20 @@ services:
       context: ../../
       dockerfile: docker/test/Dockerfile
     volumes:
-      - packages:/usr/src/app/node_modules
+      - nmodules:/app/node_modules
 
   builder:
     build:
       context: ../../
       dockerfile: docker/test/Dockerfile.builder
     volumes:
-      - packages:/usr/src/app/node_modules
+      - type: volume
+        source: nmodules
+        target: /app/node_modules
+        volume:
+          nocopy: true
+    depends_on:
+      - tests
 
 volumes:
-  packages:
-    external: true
+  nmodules:
