@@ -4,7 +4,10 @@ node {
 
   try{
     stage 'Run tests'
-    sh 'make test'
+    
+    withDockerContainer(args: "-u root") {
+            sh 'make test'
+    }
 
     stage 'Bundle files'
     sh 'make build'
