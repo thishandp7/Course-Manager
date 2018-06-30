@@ -13,6 +13,7 @@ RUN npm -v
 RUN node -v
 
 COPY package.json /app
+COPY package-lock.json /app
 RUN npm install
 
 COPY . /app
