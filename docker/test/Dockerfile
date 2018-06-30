@@ -9,6 +9,9 @@ RUN apt-get update && \
 RUN mkdir -p /app
 WORKDIR /app
 
+RUN npm -v
+RUN node -v
+
 COPY package.json /app
 RUN npm install
 
