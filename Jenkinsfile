@@ -4,7 +4,6 @@ node {
 
   try{
     stage 'Run tests'
-    
     withDockerContainer(args: "-u root") {
             sh 'make test'
     }
