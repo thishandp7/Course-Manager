@@ -1,0 +1,222 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Course Manager Stack",
+    "Parameters": {
+      "VpcId": {
+          "Description": "Target Vpc for this stack",
+          "Type": "AWS::EC2::VPC::Id",
+          "Default": ""
+      },
+      "SubnetId": {
+          "Description": "Target subnet",
+          "Type": "AWS::EC2::Subnet::Id",
+          "Default": ""
+      },
+      "KeyPair": {
+          "Description": "Key pair for this stack",
+          "Type": "String",
+          "Default": ""
+      },
+      "InstanceCount": {
+          "Description": "The desired number of application instance",
+          "Type": "String",
+          "Default": ""
+      }
+    },
+    "Resources": {
+      "AutoScalingGroup" : {
+          "Type" : "AWS::AutoScaling::AutoScalingGroup",
+          "Properties" : {
+              "VPCZoneIdentifier": [ { "Ref": "SubnetId" }],
+              "LaunchConfigurationName" : { "Ref": "AutoScalingLaunchConfiguration" },
+              "MaxSize" : 0,
+              "MinSize" : 2,
+              "DesiredCapacity": { "Ref": "InstanceCount" },
+              "Tags" : [ {"Key" : "Name",
+                          "Value" : {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-instance" ] ]},
+                          "PropagateAtLaunch" : "True"}
+                      ]
+          }
+      },
+      "AutoScalingLaunchConfiguration": {
+          "Type" : "AWS::AutoScaling::LaunchConfiguration",
+          "Properties" : {
+              "IamInstanceProfile" : { "Ref": "EC2InstanceProfile" },
+              "ImageId" : "ami-5253c32d",
+              "InstanceType" : "t2.micro",
+              "KeyName" : { "Ref": "KeyPair" },
+              "SecurityGroups" : [ { "Ref": "EC2InstanceSecurityGroup" } ],
+              "UserData" : {
+                  "Fn::Base64":
+                      {   "Fn::Join": [
+                              "",
+                              [
+                                  "#!/bin/bash -ex\n",
+                                  "echo ECS_CLUSTER=", { "Ref": "EcsCluster" }, " >> /etc/ecs/ecs.config\n"
+                              ]
+
+                          ]
+                      }
+              }
+          }
+      },
+      "EC2InstanceSecurityGroup" : {
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Properties" : {
+          "GroupDescription" : "Course Manager sg",
+          "SecurityGroupIngress" : [
+            {
+              "IpProtocol" : "tcp",
+              "FromPort" : 3000,
+              "ToPort" : 3000,
+              "SourceSecurityGroupId": { "Ref": "ElbSecurityGroup" }
+            },
+            {
+              "IpProtocol" : "tcp",
+              "FromPort" : 22,
+              "ToPort" : 22,
+              "CidrIp" : "0.0.0.0/0"
+            }
+          ],
+          "VpcId" : { "Ref": "VpcId" },
+          "Tags" :  [
+            { "Key": "Name", "Value":  {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-instance-sg" ] ]} }
+          ]
+        }
+      },
+      "ElasticLoadBalancer": {
+         "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+         "Properties": {
+            "CrossZone": "false",
+            "SecurityGroups": [ { "Ref": "ElbSecurityGroup" }],
+            "Listeners" : [
+              {
+                "LoadBalancerPort": 80,
+                "InstancePort": 3000,
+                "Protocol": "http"
+              }
+            ],
+            "HealthCheck": {
+              "Target": "HTTP:8000/",
+              "HealthyThreshold": 2,
+              "UnhealthyThreshold": 10,
+              "Interval": 30,
+              "Timeout": 5
+            },
+            "Subnets": [ { "Ref": "SubnetId" }],
+            "Tags": [
+                  {
+                    "Key": "Name",
+                    "Value": {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-elb" ] ]}
+                  }
+            ]
+         }
+      },
+      "ElbSecurityGroup" : {
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Properties" : {
+          "GroupDescription" : "Elb sg",
+          "SecurityGroupIngress" : [
+            {
+              "IpProtocol" : "tcp",
+              "FromPort" : "80",
+              "ToPort" : "80",
+              "CidrIp" : "0.0.0.0/0"
+            }
+          ],
+          "VpcId" : { "Ref": "VpcId" },
+          "Tags" :  [
+            {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-elb-sg" ] ]}
+          ]
+        }
+      },
+      "EC2InstanceProfile": {
+         "Type": "AWS::IAM::InstanceProfile",
+         "Properties": {
+            "Path": "/",
+            "Roles": [ { "Ref": "EC2InstanceRole" } ]
+         }
+      },
+      "EC2InstanceRole": {
+         "Type": "AWS::IAM::Role",
+         "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": { "Service": ["ec2.amazonaws.com"] },
+                  "Action": [ "sts:AssumeRole"]
+                }
+              ]
+            },
+            "Path": "/",
+            "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
+         }
+      },
+      "EcsCluster":{
+        "Type": "AWS::ECS::Cluster",
+      },
+      "CourseManagerTaskDefinition": {
+        "Type": "AWS::ECS:TaskDefinition",
+        "Properties": {
+          "ContainerDefinitions":[
+            {
+              "Name": "CourseManager",
+              "Image": "thishandp7/cmanager",
+              "Memory": 550,
+              "ProtMappings": [
+                {
+                  "ContainerPort": 3000,
+                  "HostPort": 3000
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "CourseManagerService":{
+        "Type": "AWS::ECS::Service",
+        "Properties":{
+          "Cluster": { "Ref": "EcsCluster" },
+          "TaskDefinition": { "Ref": "CourseManagerTaskDefinition" },
+          "LoadBalancers": [
+            {
+              "ContainerName": "CourseManager",
+              "ContainerPort": 3000,
+              "LoadBalancerName": { "Ref": "ElasticLoadBalancer" }
+            },
+          ],
+          "Role": { "Ref": "EcsServiceRole" },
+          "DesiredCount": 1
+        }
+      },
+      "EcsServiceRole": {
+         "Type": "AWS::IAM::Role",
+         "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [ "ecs.amazonaws.com" ]
+                  },
+                  "Action": [ "sts:AssumeRole"]
+                }
+              ]
+            },
+            "Path": "/",
+            "ManagedPolicyArns": [
+              "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"
+            ]
+         }
+      }
+    },
+    "Outputs": {
+      "ElbDomainName" : {
+        "Description": "Public DNS name of the Elb",
+        "Value" : { "Fn::GetAtt" : [ "ElasticLoadBalancer", "DNSName" ]}
+      }
+    }
+}
