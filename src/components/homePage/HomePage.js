@@ -6,7 +6,7 @@ class HomePage extends React.Component{
     return(
         <div className="jumbotron">
           <h1>Course Manager</h1>
-          <p>React, redux and React Router in ES6 for ultra-responsive web apps.</p>
+          <p>A personal Course Manager.</p>
           <Link to="about" className="btn btn-primary btn-lg">Learn more</Link>
         </div>
     );

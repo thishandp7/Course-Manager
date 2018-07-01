@@ -1,7 +1,7 @@
 {
-  "name": "pluralsight-react-redux",
+  "name": "Course-Manager",
   "version": "1.0.0",
-  "description": "react and redux with production build",
+  "description": "A personal course manager build with React and Redux with ES6 syntax",
   "main": "index.js",
   "scripts": {
     "prestart": "babel-node tools/startMessage.js",

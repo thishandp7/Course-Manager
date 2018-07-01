@@ -15,9 +15,19 @@ const authors = [
     lastName: 'Allen'
   },
   {
-    id: 'dan-wahlin',
-    firstName: 'Dan',
-    lastName: 'Wahlin'
+    id: 'jose-portilla',
+    firstName: 'Jose',
+    lastName: 'Portilla'
+  },
+  {
+    id: 'aws',
+    firstName: 'Amazon Web Services',
+    lastName: ''
+  },
+  {
+    id: 'pavel-pevzner',
+    firstName: 'Pavel',
+    lastName: 'Pevzner'
   }
 ];
 
