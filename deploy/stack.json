@@ -29,8 +29,8 @@
           "Properties" : {
               "VPCZoneIdentifier": [ { "Ref": "SubnetId" }],
               "LaunchConfigurationName" : { "Ref": "AutoScalingLaunchConfiguration" },
-              "MaxSize" : 0,
-              "MinSize" : 2,
+              "MaxSize" : 2,
+              "MinSize" : 0,
               "DesiredCapacity": { "Ref": "InstanceCount" },
               "Tags" : [ {"Key" : "Name",
                           "Value" : {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-instance" ] ]},
@@ -97,7 +97,7 @@
               }
             ],
             "HealthCheck": {
-              "Target": "HTTP:8000/",
+              "Target": "HTTP:3000/index.html",
               "HealthyThreshold": 2,
               "UnhealthyThreshold": 10,
               "Interval": 30,
@@ -126,7 +126,10 @@
           ],
           "VpcId" : { "Ref": "VpcId" },
           "Tags" :  [
-            {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-elb-sg" ] ]}
+            {
+              "Key": "Name",
+              "Value":  {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-elb-sg" ] ]}
+            }
           ]
         }
       },
@@ -158,14 +161,14 @@
         "Type": "AWS::ECS::Cluster",
       },
       "CourseManagerTaskDefinition": {
-        "Type": "AWS::ECS:TaskDefinition",
+        "Type": "AWS::ECS::TaskDefinition",
         "Properties": {
           "ContainerDefinitions":[
             {
               "Name": "CourseManager",
               "Image": "thishandp7/cmanager",
               "Memory": 550,
-              "ProtMappings": [
+              "PortMappings": [
                 {
                   "ContainerPort": 3000,
                   "HostPort": 3000
